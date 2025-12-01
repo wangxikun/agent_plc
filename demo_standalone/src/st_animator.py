@@ -1,0 +1,681 @@
+"""
+ST Animator - ST代码动画生成器
+生成Web动画可视化界面
+"""
+
+import json
+import os
+from typing import Dict, Any, List
+from src.st_parser import STParser
+from src.st_simulator import STSimulator
+
+
+class STAnimator:
+    """ST代码动画生成器"""
+
+    def __init__(self):
+        self.parser = STParser()
+
+    def generate_animation(
+        self,
+        st_code: str,
+        input_values: Dict[str, Any] = None,
+        output_html_path: str = None,
+        max_cycles: int = 1,
+        auto_open: bool = True
+    ) -> str:
+        """
+        生成ST代码执行动画
+
+        Args:
+            st_code: ST源代码
+            input_values: 输入变量的值
+            output_html_path: 输出HTML文件路径，如果为None则自动生成
+            max_cycles: 最大扫描周期数
+            auto_open: 是否自动在浏览器中打开
+
+        Returns:
+            生成的HTML文件路径
+        """
+        # 解析代码
+        program = self.parser.parse(st_code)
+
+        # 模拟执行
+        simulator = STSimulator(program)
+        result = simulator.simulate(input_values=input_values, max_cycles=max_cycles)
+
+        # 准备动画数据
+        animation_data = self._prepare_animation_data(program, result, input_values)
+
+        # 生成HTML
+        html_path = self._generate_html(animation_data, output_html_path)
+
+        # 自动打开浏览器
+        if auto_open:
+            self._open_in_browser(html_path)
+
+        return html_path
+
+    def _prepare_animation_data(self, program, result, input_values) -> Dict:
+        """准备动画数据"""
+        # 获取所有变量
+        all_vars = program.get_all_variables()
+
+        # 准备变量列表
+        variables = []
+        for var_name, var_obj in all_vars.items():
+            variables.append({
+                'name': var_name,
+                'type': var_obj.var_type,
+                'class': var_obj.var_class,
+                'initial': var_obj.initial_value
+            })
+
+        # 准备代码行
+        code_lines = []
+        for line_info in program.code_lines:
+            code_lines.append({
+                'index': line_info['line_num'] - 1,
+                'code': line_info['code']
+            })
+
+        # 准备执行步骤
+        steps = []
+        for step in result.steps:
+            steps.append({
+                'step': step.step_num,
+                'line': step.line_index,
+                'code': step.code_line,
+                'description': step.description,
+                'variables': step.variables,
+                'changed': step.changed_vars
+            })
+
+        return {
+            'program_name': program.name,
+            'variables': variables,
+            'code_lines': code_lines,
+            'steps': steps,
+            'input_values': input_values or {},
+            'raw_code': program.raw_code
+        }
+
+    def _generate_html(self, animation_data: Dict, output_path: str = None) -> str:
+        """生成HTML文件"""
+        if output_path is None:
+            output_path = f"st_animation_{animation_data['program_name']}.html"
+
+        html_content = self._get_html_template(animation_data)
+
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(html_content)
+
+        return os.path.abspath(output_path)
+
+    def _get_html_template(self, data: Dict) -> str:
+        """获取HTML模板"""
+        return f"""<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ST Code Animation - {data['program_name']}</title>
+    <style>
+        * {{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }}
+
+        body {{
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }}
+
+        .container {{
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }}
+
+        .header {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+        }}
+
+        .header h1 {{
+            font-size: 28px;
+            margin-bottom: 10px;
+        }}
+
+        .header p {{
+            opacity: 0.9;
+            font-size: 14px;
+        }}
+
+        .content {{
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 0;
+        }}
+
+        .code-panel {{
+            padding: 30px;
+            background: #f8f9fa;
+            border-right: 2px solid #e0e0e0;
+        }}
+
+        .code-container {{
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }}
+
+        .code-line {{
+            padding: 8px 12px;
+            margin: 2px 0;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            color: #d4d4d4;
+            font-size: 14px;
+            line-height: 1.6;
+        }}
+
+        .code-line.active {{
+            background: #ffd700;
+            color: #1e1e1e;
+            font-weight: bold;
+            transform: translateX(5px);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+        }}
+
+        .code-line.executed {{
+            background: #2d2d30;
+        }}
+
+        .info-panel {{
+            padding: 30px;
+            background: white;
+        }}
+
+        .section {{
+            margin-bottom: 25px;
+        }}
+
+        .section-title {{
+            font-size: 16px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #667eea;
+        }}
+
+        .variable-grid {{
+            display: grid;
+            gap: 10px;
+        }}
+
+        .variable-card {{
+            background: #f8f9fa;
+            padding: 12px 15px;
+            border-radius: 6px;
+            border-left: 4px solid #ddd;
+            transition: all 0.3s ease;
+        }}
+
+        .variable-card.input {{
+            border-left-color: #4CAF50;
+        }}
+
+        .variable-card.output {{
+            border-left-color: #2196F3;
+        }}
+
+        .variable-card.changed {{
+            background: #fff3cd;
+            border-left-color: #ffc107;
+            transform: scale(1.02);
+            box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+        }}
+
+        .variable-name {{
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 4px;
+        }}
+
+        .variable-value {{
+            font-size: 18px;
+            color: #667eea;
+            font-weight: bold;
+        }}
+
+        .variable-type {{
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+        }}
+
+        .controls {{
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }}
+
+        .control-buttons {{
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }}
+
+        .btn {{
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+        }}
+
+        .btn:hover {{
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }}
+
+        .btn:active {{
+            transform: translateY(0);
+        }}
+
+        .btn-play {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }}
+
+        .btn-pause {{
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }}
+
+        .btn-reset {{
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }}
+
+        .btn-step {{
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }}
+
+        .slider-container {{
+            margin-top: 15px;
+        }}
+
+        .slider {{
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }}
+
+        .slider::-webkit-slider-thumb {{
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }}
+
+        .slider::-moz-range-thumb {{
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }}
+
+        .step-info {{
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }}
+
+        .description {{
+            background: #e3f2fd;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196F3;
+        }}
+
+        .description-text {{
+            color: #1976d2;
+            font-size: 14px;
+            line-height: 1.5;
+        }}
+
+        @keyframes pulse {{
+            0%, 100% {{ opacity: 1; }}
+            50% {{ opacity: 0.5; }}
+        }}
+
+        .playing .code-line.active {{
+            animation: pulse 1s ease-in-out infinite;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 ST Code Animation</h1>
+            <p>Program: {data['program_name']}</p>
+        </div>
+
+        <div class="content">
+            <div class="code-panel">
+                <h3 style="margin-bottom: 20px; color: #333;">Structured Text Code</h3>
+                <div class="code-container" id="codeContainer">
+                    <!-- Code lines will be inserted here -->
+                </div>
+            </div>
+
+            <div class="info-panel">
+                <div class="controls">
+                    <div class="control-buttons">
+                        <button class="btn btn-play" onclick="playAnimation()">▶ Play</button>
+                        <button class="btn btn-pause" onclick="pauseAnimation()">⏸ Pause</button>
+                        <button class="btn btn-step" onclick="stepForward()">⏭ Step</button>
+                        <button class="btn btn-reset" onclick="resetAnimation()">↺ Reset</button>
+                    </div>
+                    <div class="slider-container">
+                        <input type="range" min="0" max="100" value="0" class="slider" id="stepSlider" oninput="seekToStep(this.value)">
+                        <div class="step-info">
+                            Step: <span id="currentStep">0</span> / <span id="totalSteps">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="description" id="descriptionBox">
+                    <div class="description-text" id="descriptionText">
+                        Ready to animate...
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">📥 Input Variables</div>
+                    <div class="variable-grid" id="inputVars">
+                        <!-- Input variables will be inserted here -->
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">📤 Output Variables</div>
+                    <div class="variable-grid" id="outputVars">
+                        <!-- Output variables will be inserted here -->
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">💾 Internal Variables</div>
+                    <div class="variable-grid" id="internalVars">
+                        <!-- Internal variables will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Animation data
+        const animationData = {json.dumps(data, ensure_ascii=False, indent=2)};
+
+        let currentStepIndex = 0;
+        let isPlaying = false;
+        let playInterval = null;
+        const playSpeed = 1000; // milliseconds per step
+
+        // Initialize
+        function init() {{
+            renderCodeLines();
+            renderVariables();
+            updateDisplay(0);
+            document.getElementById('totalSteps').textContent = animationData.steps.length - 1;
+            document.getElementById('stepSlider').max = animationData.steps.length - 1;
+        }}
+
+        function renderCodeLines() {{
+            const container = document.getElementById('codeContainer');
+            container.innerHTML = '';
+
+            animationData.code_lines.forEach((line, index) => {{
+                const div = document.createElement('div');
+                div.className = 'code-line';
+                div.id = `line-${{index}}`;
+                div.textContent = line.code;
+                container.appendChild(div);
+            }});
+        }}
+
+        function renderVariables() {{
+            renderVarSection('inputVars', 'INPUT');
+            renderVarSection('outputVars', 'OUTPUT');
+            renderVarSection('internalVars', 'VAR');
+        }}
+
+        function renderVarSection(containerId, varClass) {{
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            const vars = animationData.variables.filter(v => v.class === varClass);
+
+            vars.forEach(variable => {{
+                const card = document.createElement('div');
+                card.className = `variable-card ${{varClass.toLowerCase()}}`;
+                card.id = `var-${{variable.name}}`;
+                card.innerHTML = `
+                    <div class="variable-name">${{variable.name}}</div>
+                    <div class="variable-value" id="val-${{variable.name}}">${{variable.initial}}</div>
+                    <div class="variable-type">${{variable.type}}</div>
+                `;
+                container.appendChild(card);
+            }});
+        }}
+
+        function updateDisplay(stepIndex) {{
+            if (stepIndex < 0 || stepIndex >= animationData.steps.length) return;
+
+            const step = animationData.steps[stepIndex];
+
+            // Update code highlighting
+            document.querySelectorAll('.code-line').forEach(line => {{
+                line.classList.remove('active');
+                if (stepIndex > 0) {{
+                    line.classList.add('executed');
+                }} else {{
+                    line.classList.remove('executed');
+                }}
+            }});
+
+            if (step.line >= 0) {{
+                const activeLine = document.getElementById(`line-${{step.line}}`);
+                if (activeLine) {{
+                    activeLine.classList.add('active');
+                    activeLine.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
+                }}
+            }}
+
+            // Update variables
+            for (const [varName, value] of Object.entries(step.variables)) {{
+                const valueElement = document.getElementById(`val-${{varName}}`);
+                const cardElement = document.getElementById(`var-${{varName}}`);
+
+                if (valueElement) {{
+                    valueElement.textContent = value;
+                }}
+
+                if (cardElement) {{
+                    if (step.changed.includes(varName)) {{
+                        cardElement.classList.add('changed');
+                        setTimeout(() => cardElement.classList.remove('changed'), 1000);
+                    }}
+                }}
+            }}
+
+            // Update description
+            document.getElementById('descriptionText').textContent = step.description || 'Executing...';
+
+            // Update step counter
+            document.getElementById('currentStep').textContent = stepIndex;
+            document.getElementById('stepSlider').value = stepIndex;
+
+            currentStepIndex = stepIndex;
+        }}
+
+        function playAnimation() {{
+            if (isPlaying) return;
+
+            isPlaying = true;
+            document.body.classList.add('playing');
+
+            playInterval = setInterval(() => {{
+                if (currentStepIndex < animationData.steps.length - 1) {{
+                    stepForward();
+                }} else {{
+                    pauseAnimation();
+                }}
+            }}, playSpeed);
+        }}
+
+        function pauseAnimation() {{
+            isPlaying = false;
+            document.body.classList.remove('playing');
+
+            if (playInterval) {{
+                clearInterval(playInterval);
+                playInterval = null;
+            }}
+        }}
+
+        function stepForward() {{
+            if (currentStepIndex < animationData.steps.length - 1) {{
+                updateDisplay(currentStepIndex + 1);
+            }}
+        }}
+
+        function stepBackward() {{
+            if (currentStepIndex > 0) {{
+                updateDisplay(currentStepIndex - 1);
+            }}
+        }}
+
+        function resetAnimation() {{
+            pauseAnimation();
+            updateDisplay(0);
+        }}
+
+        function seekToStep(value) {{
+            pauseAnimation();
+            updateDisplay(parseInt(value));
+        }}
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {{
+            if (e.code === 'Space') {{
+                e.preventDefault();
+                if (isPlaying) {{
+                    pauseAnimation();
+                }} else {{
+                    playAnimation();
+                }}
+            }} else if (e.code === 'ArrowRight') {{
+                e.preventDefault();
+                stepForward();
+            }} else if (e.code === 'ArrowLeft') {{
+                e.preventDefault();
+                stepBackward();
+            }} else if (e.code === 'KeyR') {{
+                e.preventDefault();
+                resetAnimation();
+            }}
+        }});
+
+        // Initialize on load
+        window.onload = init;
+    </script>
+</body>
+</html>"""
+
+    def _open_in_browser(self, html_path: str):
+        """在浏览器中打开HTML文件"""
+        import webbrowser
+        webbrowser.open('file://' + html_path)
+
+
+# 测试代码
+if __name__ == "__main__":
+    test_code = """
+    FUNCTION_BLOCK MotorControl
+    VAR_INPUT
+        start_button : BOOL;
+        stop_button : BOOL;
+        temperature : REAL;
+    END_VAR
+
+    VAR_OUTPUT
+        motor : BOOL;
+        alarm : BOOL;
+    END_VAR
+
+    VAR
+        running_time : INT := 0;
+        overheat : BOOL := FALSE;
+    END_VAR
+
+    IF start_button AND NOT overheat THEN
+        motor := TRUE;
+    END_IF;
+
+    IF stop_button THEN
+        motor := FALSE;
+        running_time := 0;
+    END_IF;
+
+    IF temperature > 80.0 THEN
+        overheat := TRUE;
+        alarm := TRUE;
+        motor := FALSE;
+    END_IF;
+
+    IF motor THEN
+        running_time := running_time + 1;
+    END_IF;
+
+    END_FUNCTION_BLOCK
+    """
+
+    animator = STAnimator()
+    html_path = animator.generate_animation(
+        st_code=test_code,
+        input_values={
+            'start_button': True,
+            'stop_button': False,
+            'temperature': 25.0
+        },
+        output_html_path='motor_control_animation.html'
+    )
+
+    print(f"Animation generated: {html_path}")

@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ST Code Animation - TemperatureControlSystem</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 0;
+        }
+
+        .code-panel {
+            padding: 30px;
+            background: #f8f9fa;
+            border-right: 2px solid #e0e0e0;
+        }
+
+        .code-container {
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .code-line {
+            padding: 8px 12px;
+            margin: 2px 0;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            color: #d4d4d4;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .code-line.active {
+            background: #ffd700;
+            color: #1e1e1e;
+            font-weight: bold;
+            transform: translateX(5px);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+        }
+
+        .code-line.executed {
+            background: #2d2d30;
+        }
+
+        .info-panel {
+            padding: 30px;
+            background: white;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .variable-grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .variable-card {
+            background: #f8f9fa;
+            padding: 12px 15px;
+            border-radius: 6px;
+            border-left: 4px solid #ddd;
+            transition: all 0.3s ease;
+        }
+
+        .variable-card.input {
+            border-left-color: #4CAF50;
+        }
+
+        .variable-card.output {
+            border-left-color: #2196F3;
+        }
+
+        .variable-card.changed {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+            transform: scale(1.02);
+            box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+        }
+
+        .variable-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .variable-value {
+            font-size: 18px;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .variable-type {
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+        }
+
+        .controls {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-play {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .btn-pause {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .btn-reset {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .btn-step {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .slider-container {
+            margin-top: 15px;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+
+        .step-info {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .description {
+            background: #e3f2fd;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196F3;
+        }
+
+        .description-text {
+            color: #1976d2;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .playing .code-line.active {
+            animation: pulse 1s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 ST Code Animation</h1>
+            <p>Program: TemperatureControlSystem</p>
+        </div>
+
+        <div class="content">
+            <div class="code-panel">
+                <h3 style="margin-bottom: 20px; color: #333;">Structured Text Code</h3>
+                <div class="code-container" id="codeContainer">
+                    <!-- Code lines will be inserted here -->
+                </div>
+            </div>
+
+            <div class="info-panel">
+                <div class="controls">
+                    <div class="control-buttons">
+                        <button class="btn btn-play" onclick="playAnimation()">▶ Play</button>
+                        <button class="btn btn-pause" onclick="pauseAnimation()">⏸ Pause</button>
+                        <button class="btn btn-step" onclick="stepForward()">⏭ Step</button>
+                        <button class="btn btn-reset" onclick="resetAnimation()">↺ Reset</button>
+                    </div>
+                    <div class="slider-container">
+                        <input type="range" min="0" max="100" value="0" class="slider" id="stepSlider" oninput="seekToStep(this.value)">
+                        <div class="step-info">
+                            Step: <span id="currentStep">0</span> / <span id="totalSteps">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="description" id="descriptionBox">
+                    <div class="description-text" id="descriptionText">
+                        Ready to animate...
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">📥 Input Variables</div>
+                    <div class="variable-grid" id="inputVars">
+                        <!-- Input variables will be inserted here -->
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">📤 Output Variables</div>
+                    <div class="variable-grid" id="outputVars">
+                        <!-- Output variables will be inserted here -->
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">💾 Internal Variables</div>
+                    <div class="variable-grid" id="internalVars">
+                        <!-- Internal variables will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Animation data
+        const animationData = {
+  "program_name": "TemperatureControlSystem",
+  "variables": [
+    {
+      "name": "temperature",
+      "type": "REAL",
+      "class": "INPUT",
+      "initial": 0.0
+    },
+    {
+      "name": "manual_mode",
+      "type": "BOOL",
+      "class": "INPUT",
+      "initial": false
+    },
+    {
+      "name": "heater",
+      "type": "BOOL",
+      "class": "VAR",
+      "initial": false
+    },
+    {
+      "name": "cooler",
+      "type": "BOOL",
+      "class": "VAR",
+      "initial": false
+    },
+    {
+      "name": "alarm",
+      "type": "BOOL",
+      "class": "VAR",
+      "initial": false
+    }
+  ],
+  "code_lines": [
+    {
+      "index": 2,
+      "code": "(*-----------------------------"
+    },
+    {
+      "index": 3,
+      "code": "Auto control logic (only effective in auto mode)"
+    },
+    {
+      "index": 4,
+      "code": "------------------------------*)"
+    },
+    {
+      "index": 6,
+      "code": "IF (temperature < 18.0) THEN"
+    },
+    {
+      "index": 7,
+      "code": "heater_auto_cmd := TRUE;"
+    },
+    {
+      "index": 8,
+      "code": "cooler_auto_cmd := FALSE;"
+    },
+    {
+      "index": 9,
+      "code": "ELSIF (temperature > 26.0) THEN"
+    },
+    {
+      "index": 10,
+      "code": "heater_auto_cmd := FALSE;"
+    },
+    {
+      "index": 11,
+      "code": "cooler_auto_cmd := TRUE;"
+    },
+    {
+      "index": 12,
+      "code": "ELSE"
+    },
+    {
+      "index": 14,
+      "code": "heater_auto_cmd := FALSE;"
+    },
+    {
+      "index": 15,
+      "code": "cooler_auto_cmd := FALSE;"
+    },
+    {
+      "index": 16,
+      "code": "END_IF;"
+    },
+    {
+      "index": 19,
+      "code": "IF (temperature < 5.0) OR (temperature > 40.0) THEN"
+    },
+    {
+      "index": 20,
+      "code": "alarm_auto_cmd := TRUE;"
+    },
+    {
+      "index": 21,
+      "code": "ELSE"
+    },
+    {
+      "index": 22,
+      "code": "alarm_auto_cmd := FALSE;"
+    },
+    {
+      "index": 23,
+      "code": "END_IF;"
+    },
+    {
+      "index": 25,
+      "code": "(*-----------------------------"
+    },
+    {
+      "index": 26,
+      "code": "Manual mode handling"
+    },
+    {
+      "index": 27,
+      "code": "Requirement: No auto control in manual mode"
+    },
+    {
+      "index": 28,
+      "code": "This means: In manual mode, this function block does not auto-control outputs,"
+    },
+    {
+      "index": 29,
+      "code": "Therefore all outputs are set to FALSE in manual mode, controlled by upper logic."
+    },
+    {
+      "index": 30,
+      "code": "------------------------------*)"
+    },
+    {
+      "index": 31,
+      "code": "IF manual_mode THEN"
+    },
+    {
+      "index": 33,
+      "code": "heater := FALSE;"
+    },
+    {
+      "index": 34,
+      "code": "cooler := FALSE;"
+    },
+    {
+      "index": 35,
+      "code": "alarm  := FALSE;"
+    },
+    {
+      "index": 36,
+      "code": "ELSE"
+    },
+    {
+      "index": 38,
+      "code": "heater := heater_auto_cmd;"
+    },
+    {
+      "index": 39,
+      "code": "cooler := cooler_auto_cmd;"
+    },
+    {
+      "index": 40,
+      "code": "alarm  := alarm_auto_cmd;"
+    },
+    {
+      "index": 41,
+      "code": "END_IF;"
+    }
+  ],
+  "steps": [
+    {
+      "step": 0,
+      "line": -1,
+      "code": "[INITIALIZATION]",
+      "description": "Initialize variables",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false
+      },
+      "changed": []
+    },
+    {
+      "step": 1,
+      "line": 0,
+      "code": "(*-----------------------------",
+      "description": "Skip comment or empty line",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false
+      },
+      "changed": []
+    },
+    {
+      "step": 2,
+      "line": 1,
+      "code": "Auto control logic (only effective in auto mode)",
+      "description": "Execute: Auto control logic (only effective in auto mode)",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false
+      },
+      "changed": []
+    },
+    {
+      "step": 3,
+      "line": 2,
+      "code": "------------------------------*)",
+      "description": "Execute: ------------------------------*)",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false
+      },
+      "changed": []
+    },
+    {
+      "step": 4,
+      "line": 3,
+      "code": "IF (temperature < 18.0) THEN",
+      "description": "IF condition: (temperature < 18.0) = True",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false
+      },
+      "changed": []
+    },
+    {
+      "step": 5,
+      "line": 4,
+      "code": "heater_auto_cmd := TRUE;",
+      "description": "Assignment: heater_auto_cmd = True (previous: None)",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": true
+      },
+      "changed": [
+        "heater_auto_cmd"
+      ]
+    },
+    {
+      "step": 6,
+      "line": 5,
+      "code": "cooler_auto_cmd := FALSE;",
+      "description": "Assignment: cooler_auto_cmd = False (previous: None)",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": true,
+        "cooler_auto_cmd": false
+      },
+      "changed": [
+        "cooler_auto_cmd"
+      ]
+    },
+    {
+      "step": 7,
+      "line": 6,
+      "code": "ELSIF (temperature > 26.0) THEN",
+      "description": "ELSIF condition: (temperature > 26.0) = False",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": true,
+        "cooler_auto_cmd": false
+      },
+      "changed": []
+    },
+    {
+      "step": 8,
+      "line": 7,
+      "code": "heater_auto_cmd := FALSE;",
+      "description": "Assignment: heater_auto_cmd = False (previous: True)",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": false,
+        "cooler_auto_cmd": false
+      },
+      "changed": [
+        "heater_auto_cmd"
+      ]
+    },
+    {
+      "step": 9,
+      "line": 8,
+      "code": "cooler_auto_cmd := TRUE;",
+      "description": "Assignment: cooler_auto_cmd = True (previous: False)",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": false,
+        "cooler_auto_cmd": true
+      },
+      "changed": [
+        "cooler_auto_cmd"
+      ]
+    },
+    {
+      "step": 10,
+      "line": 9,
+      "code": "ELSE",
+      "description": "Enter ELSE branch",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": false,
+        "cooler_auto_cmd": true
+      },
+      "changed": []
+    },
+    {
+      "step": 11,
+      "line": 10,
+      "code": "heater_auto_cmd := FALSE;",
+      "description": "Assignment: heater_auto_cmd = False (previous: False)",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": false,
+        "cooler_auto_cmd": true
+      },
+      "changed": []
+    },
+    {
+      "step": 12,
+      "line": 11,
+      "code": "cooler_auto_cmd := FALSE;",
+      "description": "Assignment: cooler_auto_cmd = False (previous: True)",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": false,
+        "cooler_auto_cmd": false
+      },
+      "changed": [
+        "cooler_auto_cmd"
+      ]
+    },
+    {
+      "step": 13,
+      "line": 12,
+      "code": "END_IF;",
+      "description": "End IF statement",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": false,
+        "cooler_auto_cmd": false
+      },
+      "changed": []
+    },
+    {
+      "step": 14,
+      "line": 13,
+      "code": "IF (temperature < 5.0) OR (temperature > 40.0) THEN",
+      "description": "IF condition: (temperature < 5.0) OR (temperature > 40.0) = False",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": false,
+        "cooler_auto_cmd": false
+      },
+      "changed": []
+    },
+    {
+      "step": 15,
+      "line": 14,
+      "code": "alarm_auto_cmd := TRUE;",
+      "description": "Assignment: alarm_auto_cmd = True (previous: None)",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": false,
+        "cooler_auto_cmd": false,
+        "alarm_auto_cmd": true
+      },
+      "changed": [
+        "alarm_auto_cmd"
+      ]
+    },
+    {
+      "step": 16,
+      "line": 15,
+      "code": "ELSE",
+      "description": "Enter ELSE branch",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": false,
+        "cooler_auto_cmd": false,
+        "alarm_auto_cmd": true
+      },
+      "changed": []
+    },
+    {
+      "step": 17,
+      "line": 16,
+      "code": "alarm_auto_cmd := FALSE;",
+      "description": "Assignment: alarm_auto_cmd = False (previous: True)",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": false,
+        "cooler_auto_cmd": false,
+        "alarm_auto_cmd": false
+      },
+      "changed": [
+        "alarm_auto_cmd"
+      ]
+    },
+    {
+      "step": 18,
+      "line": 17,
+      "code": "END_IF;",
+      "description": "End IF statement",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": false,
+        "cooler_auto_cmd": false,
+        "alarm_auto_cmd": false
+      },
+      "changed": []
+    },
+    {
+      "step": 19,
+      "line": 18,
+      "code": "(*-----------------------------",
+      "description": "Skip comment or empty line",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": false,
+        "cooler_auto_cmd": false,
+        "alarm_auto_cmd": false
+      },
+      "changed": []
+    },
+    {
+      "step": 20,
+      "line": 19,
+      "code": "Manual mode handling",
+      "description": "Execute: Manual mode handling",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": false,
+        "cooler_auto_cmd": false,
+        "alarm_auto_cmd": false
+      },
+      "changed": []
+    },
+    {
+      "step": 21,
+      "line": 20,
+      "code": "Requirement: No auto control in manual mode",
+      "description": "Execute: Requirement: No auto control in manual mode",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": false,
+        "cooler_auto_cmd": false,
+        "alarm_auto_cmd": false
+      },
+      "changed": []
+    },
+    {
+      "step": 22,
+      "line": 21,
+      "code": "This means: In manual mode, this function block does not auto-control outputs,",
+      "description": "Execute: In manual mode, this function block does not auto-control outputs,",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": false,
+        "cooler_auto_cmd": false,
+        "alarm_auto_cmd": false
+      },
+      "changed": []
+    },
+    {
+      "step": 23,
+      "line": 22,
+      "code": "Therefore all outputs are set to FALSE in manual mode, controlled by upper logic.",
+      "description": "Execute: All outputs set to FALSE in manual mode, controlled by upper logic.",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": false,
+        "cooler_auto_cmd": false,
+        "alarm_auto_cmd": false
+      },
+      "changed": []
+    },
+    {
+      "step": 24,
+      "line": 23,
+      "code": "------------------------------*)",
+      "description": "Execute: ------------------------------*)",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": false,
+        "cooler_auto_cmd": false,
+        "alarm_auto_cmd": false
+      },
+      "changed": []
+    },
+    {
+      "step": 25,
+      "line": 24,
+      "code": "IF manual_mode THEN",
+      "description": "IF condition: manual_mode = False",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": false,
+        "cooler_auto_cmd": false,
+        "alarm_auto_cmd": false
+      },
+      "changed": []
+    },
+    {
+      "step": 26,
+      "line": 25,
+      "code": "heater := FALSE;",
+      "description": "Assignment: heater = False (previous: False)",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": false,
+        "cooler_auto_cmd": false,
+        "alarm_auto_cmd": false
+      },
+      "changed": []
+    },
+    {
+      "step": 27,
+      "line": 26,
+      "code": "cooler := FALSE;",
+      "description": "Assignment: cooler = False (previous: False)",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": false,
+        "cooler_auto_cmd": false,
+        "alarm_auto_cmd": false
+      },
+      "changed": []
+    },
+    {
+      "step": 28,
+      "line": 27,
+      "code": "alarm  := FALSE;",
+      "description": "Assignment: alarm = False (previous: False)",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": false,
+        "cooler_auto_cmd": false,
+        "alarm_auto_cmd": false
+      },
+      "changed": []
+    },
+    {
+      "step": 29,
+      "line": 28,
+      "code": "ELSE",
+      "description": "Enter ELSE branch",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": false,
+        "cooler_auto_cmd": false,
+        "alarm_auto_cmd": false
+      },
+      "changed": []
+    },
+    {
+      "step": 30,
+      "line": 29,
+      "code": "heater := heater_auto_cmd;",
+      "description": "Assignment: heater = False (previous: False)",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": false,
+        "cooler_auto_cmd": false,
+        "alarm_auto_cmd": false
+      },
+      "changed": []
+    },
+    {
+      "step": 31,
+      "line": 30,
+      "code": "cooler := cooler_auto_cmd;",
+      "description": "Assignment: cooler = False (previous: False)",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": false,
+        "cooler_auto_cmd": false,
+        "alarm_auto_cmd": false
+      },
+      "changed": []
+    },
+    {
+      "step": 32,
+      "line": 31,
+      "code": "alarm  := alarm_auto_cmd;",
+      "description": "Assignment: alarm = False (previous: False)",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": false,
+        "cooler_auto_cmd": false,
+        "alarm_auto_cmd": false
+      },
+      "changed": []
+    },
+    {
+      "step": 33,
+      "line": 32,
+      "code": "END_IF;",
+      "description": "End IF statement",
+      "variables": {
+        "temperature": 15.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "heater_auto_cmd": false,
+        "cooler_auto_cmd": false,
+        "alarm_auto_cmd": false
+      },
+      "changed": []
+    }
+  ],
+  "input_values": {
+    "temperature": 15.0,
+    "manual_mode": false
+  },
+  "raw_code": "FUNCTION_BLOCK TemperatureControlSystem\nVAR_INPUT\n    temperature : REAL;    (* Current temperature in Celsius *)\n    manual_mode : BOOL;    (* Manual mode: TRUE=manual, FALSE=auto *)\nEND_VAR\n\nVAR_OUTPUT\n    heater : BOOL;         (* Heater output *)\n    cooler : BOOL;         (* Cooler output *)\n    alarm  : BOOL;         (* Alarm output *)\nEND_VAR\n\nVAR\n    heater_auto_cmd : BOOL := FALSE;   (* Heater command in auto mode *)\n    cooler_auto_cmd : BOOL := FALSE;   (* Cooler command in auto mode *)\n    alarm_auto_cmd  : BOOL := FALSE;   (* Alarm command in auto mode *)\nEND_VAR\n\n(*-----------------------------\n  Auto control logic (only effective in auto mode)\n------------------------------*)\n(* Temperature zone control for heating/cooling *)\nIF (temperature < 18.0) THEN\n    heater_auto_cmd := TRUE;\n    cooler_auto_cmd := FALSE;\nELSIF (temperature > 26.0) THEN\n    heater_auto_cmd := FALSE;\n    cooler_auto_cmd := TRUE;\nELSE\n    (* 18C <= temperature <= 26C: both off *)\n    heater_auto_cmd := FALSE;\n    cooler_auto_cmd := FALSE;\nEND_IF;\n\n(* Alarm logic: temperature < 5C or temperature > 40C *)\nIF (temperature < 5.0) OR (temperature > 40.0) THEN\n    alarm_auto_cmd := TRUE;\nELSE\n    alarm_auto_cmd := FALSE;\nEND_IF;\n\n(*-----------------------------\n  Manual mode handling\n  Requirement: No auto control in manual mode\n  This means: In manual mode, this function block does not auto-control outputs,\n  Therefore all outputs are set to FALSE in manual mode, controlled by upper logic.\n------------------------------*)\nIF manual_mode THEN\n    (* Manual mode: This function block does not output auto control signals *)\n    heater := FALSE;\n    cooler := FALSE;\n    alarm  := FALSE;\nELSE\n    (* Auto mode: Output auto control results *)\n    heater := heater_auto_cmd;\n    cooler := cooler_auto_cmd;\n    alarm  := alarm_auto_cmd;\nEND_IF;\n\nEND_FUNCTION_BLOCK"
+};
+
+        let currentStepIndex = 0;
+        let isPlaying = false;
+        let playInterval = null;
+        const playSpeed = 1000; // milliseconds per step
+
+        // Initialize
+        function init() {
+            renderCodeLines();
+            renderVariables();
+            updateDisplay(0);
+            document.getElementById('totalSteps').textContent = animationData.steps.length - 1;
+            document.getElementById('stepSlider').max = animationData.steps.length - 1;
+        }
+
+        function renderCodeLines() {
+            const container = document.getElementById('codeContainer');
+            container.innerHTML = '';
+
+            animationData.code_lines.forEach((line, index) => {
+                const div = document.createElement('div');
+                div.className = 'code-line';
+                div.id = `line-${index}`;
+                div.textContent = line.code;
+                container.appendChild(div);
+            });
+        }
+
+        function renderVariables() {
+            renderVarSection('inputVars', 'INPUT');
+            renderVarSection('outputVars', 'OUTPUT');
+            renderVarSection('internalVars', 'VAR');
+        }
+
+        function renderVarSection(containerId, varClass) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            const vars = animationData.variables.filter(v => v.class === varClass);
+
+            vars.forEach(variable => {
+                const card = document.createElement('div');
+                card.className = `variable-card ${varClass.toLowerCase()}`;
+                card.id = `var-${variable.name}`;
+                card.innerHTML = `
+                    <div class="variable-name">${variable.name}</div>
+                    <div class="variable-value" id="val-${variable.name}">${variable.initial}</div>
+                    <div class="variable-type">${variable.type}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function updateDisplay(stepIndex) {
+            if (stepIndex < 0 || stepIndex >= animationData.steps.length) return;
+
+            const step = animationData.steps[stepIndex];
+
+            // Update code highlighting
+            document.querySelectorAll('.code-line').forEach(line => {
+                line.classList.remove('active');
+                if (stepIndex > 0) {
+                    line.classList.add('executed');
+                } else {
+                    line.classList.remove('executed');
+                }
+            });
+
+            if (step.line >= 0) {
+                const activeLine = document.getElementById(`line-${step.line}`);
+                if (activeLine) {
+                    activeLine.classList.add('active');
+                    activeLine.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+
+            // Update variables
+            for (const [varName, value] of Object.entries(step.variables)) {
+                const valueElement = document.getElementById(`val-${varName}`);
+                const cardElement = document.getElementById(`var-${varName}`);
+
+                if (valueElement) {
+                    valueElement.textContent = value;
+                }
+
+                if (cardElement) {
+                    if (step.changed.includes(varName)) {
+                        cardElement.classList.add('changed');
+                        setTimeout(() => cardElement.classList.remove('changed'), 1000);
+                    }
+                }
+            }
+
+            // Update description
+            document.getElementById('descriptionText').textContent = step.description || 'Executing...';
+
+            // Update step counter
+            document.getElementById('currentStep').textContent = stepIndex;
+            document.getElementById('stepSlider').value = stepIndex;
+
+            currentStepIndex = stepIndex;
+        }
+
+        function playAnimation() {
+            if (isPlaying) return;
+
+            isPlaying = true;
+            document.body.classList.add('playing');
+
+            playInterval = setInterval(() => {
+                if (currentStepIndex < animationData.steps.length - 1) {
+                    stepForward();
+                } else {
+                    pauseAnimation();
+                }
+            }, playSpeed);
+        }
+
+        function pauseAnimation() {
+            isPlaying = false;
+            document.body.classList.remove('playing');
+
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+        }
+
+        function stepForward() {
+            if (currentStepIndex < animationData.steps.length - 1) {
+                updateDisplay(currentStepIndex + 1);
+            }
+        }
+
+        function stepBackward() {
+            if (currentStepIndex > 0) {
+                updateDisplay(currentStepIndex - 1);
+            }
+        }
+
+        function resetAnimation() {
+            pauseAnimation();
+            updateDisplay(0);
+        }
+
+        function seekToStep(value) {
+            pauseAnimation();
+            updateDisplay(parseInt(value));
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (isPlaying) {
+                    pauseAnimation();
+                } else {
+                    playAnimation();
+                }
+            } else if (e.code === 'ArrowRight') {
+                e.preventDefault();
+                stepForward();
+            } else if (e.code === 'ArrowLeft') {
+                e.preventDefault();
+                stepBackward();
+            } else if (e.code === 'KeyR') {
+                e.preventDefault();
+                resetAnimation();
+            }
+        });
+
+        // Initialize on load
+        window.onload = init;
+    </script>
+</body>
+</html>
