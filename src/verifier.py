@@ -139,12 +139,17 @@ class Verifier:
         Returns:
             CompileResult: 编译结果
         """
+        print(f"\n🔍 [Verifier] Starting compilation check...")
+        print(f"   Compiler: {self.compiler_type}")
+
         # 保存代码到临时文件
         if save_to_file:
             # 创建临时文件
             with tempfile.NamedTemporaryFile(mode='w', suffix='.ST', delete=False) as f:
                 f.write(st_code)
                 temp_file = f.name
+            print(f"   Temp file: {temp_file}")
+            print(f"   Code size: {len(st_code)} bytes")
         else:
             # 如果不保存，这里需要其他处理方式
             # 但通常编译器需要文件路径
@@ -152,6 +157,7 @@ class Verifier:
 
         try:
             # 调用编译器
+            print(f"   Invoking {self.compiler_type} compiler...")
             if self.compiler_type == "rusty":
                 success = rusty_compiler(temp_file)
                 compiler_name = "Rusty"

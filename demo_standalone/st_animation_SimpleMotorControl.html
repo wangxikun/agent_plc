@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -354,18 +354,22 @@
     },
     {
       "index": 3,
-      "code": "Motor control logic:"
+      "code": "Motor control logic with priority:"
     },
     {
       "index": 4,
-      "code": "- Stop button has highest priority, check stop first"
+      "code": "- Stop button has higher priority than start."
     },
     {
       "index": 5,
-      "code": "- If stop button not pressed, set motor based on start button"
+      "code": "- If stop is pressed, motor always stops regardless of start."
     },
     {
       "index": 6,
+      "code": "- Otherwise, start button can turn motor on."
+    },
+    {
+      "index": 7,
       "code": "*)"
     },
     {
@@ -373,19 +377,19 @@
       "code": "IF stop_button THEN"
     },
     {
-      "index": 10,
+      "index": 11,
       "code": "motor_state := FALSE;"
     },
     {
-      "index": 11,
+      "index": 12,
       "code": "ELSIF start_button THEN"
     },
     {
-      "index": 13,
+      "index": 14,
       "code": "motor_state := TRUE;"
     },
     {
-      "index": 14,
+      "index": 15,
       "code": "END_IF;"
     },
     {
@@ -398,10 +402,10 @@
       "step": 0,
       "line": -1,
       "code": "[INITIALIZATION]",
-      "description": "Initialize variables",
+      "description": "初始化变量",
       "variables": {
         "start_button": true,
-        "stop_button": false,
+        "stop_button": true,
         "motor": false
       },
       "changed": []
@@ -410,10 +414,10 @@
       "step": 1,
       "line": 0,
       "code": "(*",
-      "description": "Skip comment or empty line",
+      "description": "跳过注释或空行",
       "variables": {
         "start_button": true,
-        "stop_button": false,
+        "stop_button": true,
         "motor": false
       },
       "changed": []
@@ -421,11 +425,11 @@
     {
       "step": 2,
       "line": 1,
-      "code": "Motor control logic:",
-      "description": "Execute: Motor control logic:",
+      "code": "Motor control logic with priority:",
+      "description": "执行: Motor control logic with priority:",
       "variables": {
         "start_button": true,
-        "stop_button": false,
+        "stop_button": true,
         "motor": false
       },
       "changed": []
@@ -433,11 +437,11 @@
     {
       "step": 3,
       "line": 2,
-      "code": "- Stop button has highest priority, check stop first",
-      "description": "Execute: - Stop button has highest priority, check stop first",
+      "code": "- Stop button has higher priority than start.",
+      "description": "执行: - Stop button has higher priority than start.",
       "variables": {
         "start_button": true,
-        "stop_button": false,
+        "stop_button": true,
         "motor": false
       },
       "changed": []
@@ -445,11 +449,11 @@
     {
       "step": 4,
       "line": 3,
-      "code": "- If stop button not pressed, set motor based on start button",
-      "description": "Execute: - If stop button not pressed, set motor based on start button",
+      "code": "- If stop is pressed, motor always stops regardless of start.",
+      "description": "执行: - If stop is pressed, motor always stops regardless of start.",
       "variables": {
         "start_button": true,
-        "stop_button": false,
+        "stop_button": true,
         "motor": false
       },
       "changed": []
@@ -457,11 +461,11 @@
     {
       "step": 5,
       "line": 4,
-      "code": "*)",
-      "description": "Execute: *)",
+      "code": "- Otherwise, start button can turn motor on.",
+      "description": "执行: - Otherwise, start button can turn motor on.",
       "variables": {
         "start_button": true,
-        "stop_button": false,
+        "stop_button": true,
         "motor": false
       },
       "changed": []
@@ -469,11 +473,11 @@
     {
       "step": 6,
       "line": 5,
-      "code": "IF stop_button THEN",
-      "description": "IF condition: stop_button = False",
+      "code": "*)",
+      "description": "执行: *)",
       "variables": {
         "start_button": true,
-        "stop_button": false,
+        "stop_button": true,
         "motor": false
       },
       "changed": []
@@ -481,11 +485,23 @@
     {
       "step": 7,
       "line": 6,
-      "code": "motor_state := FALSE;",
-      "description": "Assignment: motor_state = False (previous: None)",
+      "code": "IF stop_button THEN",
+      "description": "IF条件: stop_button = True",
       "variables": {
         "start_button": true,
-        "stop_button": false,
+        "stop_button": true,
+        "motor": false
+      },
+      "changed": []
+    },
+    {
+      "step": 8,
+      "line": 7,
+      "code": "motor_state := FALSE;",
+      "description": "赋值: motor_state = False (原值: None)",
+      "variables": {
+        "start_button": true,
+        "stop_button": true,
         "motor": false,
         "motor_state": false
       },
@@ -494,67 +510,50 @@
       ]
     },
     {
-      "step": 8,
-      "line": 7,
+      "step": 9,
+      "line": 8,
       "code": "ELSIF start_button THEN",
-      "description": "ELSIF condition: start_button = True",
+      "description": "跳过ELSIF分支（前面的分支已执行）",
       "variables": {
         "start_button": true,
-        "stop_button": false,
+        "stop_button": true,
         "motor": false,
         "motor_state": false
       },
       "changed": []
     },
     {
-      "step": 9,
-      "line": 8,
-      "code": "motor_state := TRUE;",
-      "description": "Assignment: motor_state = True (previous: False)",
-      "variables": {
-        "start_button": true,
-        "stop_button": false,
-        "motor": false,
-        "motor_state": true
-      },
-      "changed": [
-        "motor_state"
-      ]
-    },
-    {
       "step": 10,
-      "line": 9,
+      "line": 10,
       "code": "END_IF;",
-      "description": "End IF statement",
+      "description": "结束IF语句",
       "variables": {
         "start_button": true,
-        "stop_button": false,
+        "stop_button": true,
         "motor": false,
-        "motor_state": true
+        "motor_state": false
       },
       "changed": []
     },
     {
       "step": 11,
-      "line": 10,
+      "line": 11,
       "code": "motor := motor_state;",
-      "description": "Assignment: motor = True (previous: False)",
+      "description": "赋值: motor = False (原值: False)",
       "variables": {
         "start_button": true,
-        "stop_button": false,
-        "motor": true,
-        "motor_state": true
+        "stop_button": true,
+        "motor": false,
+        "motor_state": false
       },
-      "changed": [
-        "motor"
-      ]
+      "changed": []
     }
   ],
   "input_values": {
     "start_button": true,
-    "stop_button": false
+    "stop_button": true
   },
-  "raw_code": "FUNCTION_BLOCK SimpleMotorControl\nVAR_INPUT\n    start_button : BOOL; (* Start button input *)\n    stop_button  : BOOL; (* Stop button input, higher priority *)\nEND_VAR\n\nVAR_OUTPUT\n    motor : BOOL;        (* Motor output state *)\nEND_VAR\n\nVAR\n    motor_state : BOOL := FALSE; (* Internal motor holding state *)\nEND_VAR\n\n(* \n   Motor control logic:\n   - Stop button has highest priority, check stop first\n   - If stop button not pressed, set motor based on start button\n*)\n\n(* Stop button priority: stop motor immediately when pressed *)\nIF stop_button THEN\n    motor_state := FALSE;\nELSIF start_button THEN\n    (* Start button only effective when stop button not pressed *)\n    motor_state := TRUE;\nEND_IF;\n\n(* Output internal state to motor control *)\nmotor := motor_state;\n\nEND_FUNCTION_BLOCK"
+  "raw_code": "FUNCTION_BLOCK SimpleMotorControl\nVAR_INPUT\n    start_button : BOOL; (* Start button input *)\n    stop_button  : BOOL; (* Stop button input *)\nEND_VAR\n\nVAR_OUTPUT\n    motor : BOOL;        (* Motor output state *)\nEND_VAR\n\nVAR\n    motor_state : BOOL := FALSE; (* Latched motor state *)\nEND_VAR\n\n(* \n   Motor control logic with priority:\n   - Stop button has higher priority than start.\n   - If stop is pressed, motor always stops regardless of start.\n   - Otherwise, start button can turn motor on.\n*)\n\nIF stop_button THEN\n    (* Highest priority: stop command *)\n    motor_state := FALSE;\nELSIF start_button THEN\n    (* Start command only if stop is not active *)\n    motor_state := TRUE;\nEND_IF;\n\nmotor := motor_state;\n\nEND_FUNCTION_BLOCK"
 };
 
         let currentStepIndex = 0;

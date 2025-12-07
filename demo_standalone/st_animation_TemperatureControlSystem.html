@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -361,136 +361,108 @@
   ],
   "code_lines": [
     {
-      "index": 2,
-      "code": "(*-----------------------------"
-    },
-    {
-      "index": 3,
-      "code": "Auto control logic (only effective in auto mode)"
-    },
-    {
-      "index": 4,
-      "code": "------------------------------*)"
-    },
-    {
-      "index": 6,
-      "code": "IF (temperature < 18.0) THEN"
-    },
-    {
       "index": 7,
-      "code": "heater_auto_cmd := TRUE;"
+      "code": "auto_heater_cmd := FALSE;"
     },
     {
       "index": 8,
-      "code": "cooler_auto_cmd := FALSE;"
+      "code": "auto_cooler_cmd := FALSE;"
     },
     {
       "index": 9,
-      "code": "ELSIF (temperature > 26.0) THEN"
-    },
-    {
-      "index": 10,
-      "code": "heater_auto_cmd := FALSE;"
-    },
-    {
-      "index": 11,
-      "code": "cooler_auto_cmd := TRUE;"
+      "code": "auto_alarm_cmd  := FALSE;"
     },
     {
       "index": 12,
-      "code": "ELSE"
-    },
-    {
-      "index": 14,
-      "code": "heater_auto_cmd := FALSE;"
-    },
-    {
-      "index": 15,
-      "code": "cooler_auto_cmd := FALSE;"
-    },
-    {
-      "index": 16,
-      "code": "END_IF;"
-    },
-    {
-      "index": 19,
       "code": "IF (temperature < 5.0) OR (temperature > 40.0) THEN"
     },
     {
+      "index": 13,
+      "code": "auto_alarm_cmd := TRUE;"
+    },
+    {
+      "index": 14,
+      "code": "END_IF;"
+    },
+    {
+      "index": 17,
+      "code": "IF NOT manual_mode THEN"
+    },
+    {
+      "index": 19,
+      "code": "IF temperature < 18.0 THEN"
+    },
+    {
       "index": 20,
-      "code": "alarm_auto_cmd := TRUE;"
+      "code": "auto_heater_cmd := TRUE;"
     },
     {
       "index": 21,
-      "code": "ELSE"
+      "code": "auto_cooler_cmd := FALSE;"
     },
     {
       "index": 22,
-      "code": "alarm_auto_cmd := FALSE;"
+      "code": "ELSIF temperature > 26.0 THEN"
     },
     {
       "index": 23,
-      "code": "END_IF;"
+      "code": "auto_heater_cmd := FALSE;"
+    },
+    {
+      "index": 24,
+      "code": "auto_cooler_cmd := TRUE;"
     },
     {
       "index": 25,
-      "code": "(*-----------------------------"
-    },
-    {
-      "index": 26,
-      "code": "Manual mode handling"
-    },
-    {
-      "index": 27,
-      "code": "Requirement: No auto control in manual mode"
-    },
-    {
-      "index": 28,
-      "code": "This means: In manual mode, this function block does not auto-control outputs,"
-    },
-    {
-      "index": 29,
-      "code": "Therefore all outputs are set to FALSE in manual mode, controlled by upper logic."
-    },
-    {
-      "index": 30,
-      "code": "------------------------------*)"
-    },
-    {
-      "index": 31,
-      "code": "IF manual_mode THEN"
-    },
-    {
-      "index": 33,
-      "code": "heater := FALSE;"
-    },
-    {
-      "index": 34,
-      "code": "cooler := FALSE;"
-    },
-    {
-      "index": 35,
-      "code": "alarm  := FALSE;"
-    },
-    {
-      "index": 36,
       "code": "ELSE"
     },
     {
+      "index": 27,
+      "code": "auto_heater_cmd := FALSE;"
+    },
+    {
+      "index": 28,
+      "code": "auto_cooler_cmd := FALSE;"
+    },
+    {
+      "index": 29,
+      "code": "END_IF;"
+    },
+    {
+      "index": 30,
+      "code": "END_IF;"
+    },
+    {
       "index": 38,
-      "code": "heater := heater_auto_cmd;"
+      "code": "IF manual_mode THEN"
     },
     {
       "index": 39,
-      "code": "cooler := cooler_auto_cmd;"
+      "code": "heater := FALSE;"
     },
     {
       "index": 40,
-      "code": "alarm  := alarm_auto_cmd;"
+      "code": "cooler := FALSE;"
     },
     {
       "index": 41,
+      "code": "ELSE"
+    },
+    {
+      "index": 42,
+      "code": "heater := auto_heater_cmd;"
+    },
+    {
+      "index": 43,
+      "code": "cooler := auto_cooler_cmd;"
+    },
+    {
+      "index": 44,
       "code": "END_IF;"
+    },
+    {
+      "index": 46,
+      "code": "alarm := auto_alarm_cmd;"
     }
   ],
   "steps": [
@@ -498,9 +470,9 @@
       "step": 0,
       "line": -1,
       "code": "[INITIALIZATION]",
-      "description": "Initialize variables",
+      "description": "初始化变量",
       "variables": {
-        "temperature": 15.0,
+        "temperature": 115.0,
         "manual_mode": false,
         "heater": false,
         "cooler": false,
@@ -511,561 +483,360 @@
     {
       "step": 1,
       "line": 0,
-      "code": "(*-----------------------------",
-      "description": "Skip comment or empty line",
+      "code": "auto_heater_cmd := FALSE;",
+      "description": "赋值: auto_heater_cmd = False (原值: None)",
       "variables": {
-        "temperature": 15.0,
+        "temperature": 115.0,
         "manual_mode": false,
         "heater": false,
         "cooler": false,
-        "alarm": false
+        "alarm": false,
+        "auto_heater_cmd": false
       },
-      "changed": []
+      "changed": [
+        "auto_heater_cmd"
+      ]
     },
     {
       "step": 2,
       "line": 1,
-      "code": "Auto control logic (only effective in auto mode)",
-      "description": "Execute: Auto control logic (only effective in auto mode)",
+      "code": "auto_cooler_cmd := FALSE;",
+      "description": "赋值: auto_cooler_cmd = False (原值: None)",
       "variables": {
-        "temperature": 15.0,
+        "temperature": 115.0,
         "manual_mode": false,
         "heater": false,
         "cooler": false,
-        "alarm": false
+        "alarm": false,
+        "auto_heater_cmd": false,
+        "auto_cooler_cmd": false
       },
-      "changed": []
+      "changed": [
+        "auto_cooler_cmd"
+      ]
     },
     {
       "step": 3,
       "line": 2,
-      "code": "------------------------------*)",
-      "description": "Execute: ------------------------------*)",
+      "code": "auto_alarm_cmd  := FALSE;",
+      "description": "赋值: auto_alarm_cmd = False (原值: None)",
       "variables": {
-        "temperature": 15.0,
+        "temperature": 115.0,
         "manual_mode": false,
         "heater": false,
         "cooler": false,
-        "alarm": false
+        "alarm": false,
+        "auto_heater_cmd": false,
+        "auto_cooler_cmd": false,
+        "auto_alarm_cmd": false
       },
-      "changed": []
+      "changed": [
+        "auto_alarm_cmd"
+      ]
     },
     {
       "step": 4,
       "line": 3,
-      "code": "IF (temperature < 18.0) THEN",
-      "description": "IF condition: (temperature < 18.0) = True",
+      "code": "IF (temperature < 5.0) OR (temperature > 40.0) THEN",
+      "description": "IF条件: (temperature < 5.0) OR (temperature > 40.0) = True",
       "variables": {
-        "temperature": 15.0,
+        "temperature": 115.0,
         "manual_mode": false,
         "heater": false,
         "cooler": false,
-        "alarm": false
+        "alarm": false,
+        "auto_heater_cmd": false,
+        "auto_cooler_cmd": false,
+        "auto_alarm_cmd": false
       },
       "changed": []
     },
     {
       "step": 5,
       "line": 4,
-      "code": "heater_auto_cmd := TRUE;",
-      "description": "Assignment: heater_auto_cmd = True (previous: None)",
+      "code": "auto_alarm_cmd := TRUE;",
+      "description": "赋值: auto_alarm_cmd = True (原值: False)",
       "variables": {
-        "temperature": 15.0,
+        "temperature": 115.0,
         "manual_mode": false,
         "heater": false,
         "cooler": false,
         "alarm": false,
-        "heater_auto_cmd": true
+        "auto_heater_cmd": false,
+        "auto_cooler_cmd": false,
+        "auto_alarm_cmd": true
       },
       "changed": [
-        "heater_auto_cmd"
+        "auto_alarm_cmd"
       ]
     },
     {
       "step": 6,
       "line": 5,
-      "code": "cooler_auto_cmd := FALSE;",
-      "description": "Assignment: cooler_auto_cmd = False (previous: None)",
+      "code": "END_IF;",
+      "description": "结束IF语句",
       "variables": {
-        "temperature": 15.0,
+        "temperature": 115.0,
         "manual_mode": false,
         "heater": false,
         "cooler": false,
         "alarm": false,
-        "heater_auto_cmd": true,
-        "cooler_auto_cmd": false
+        "auto_heater_cmd": false,
+        "auto_cooler_cmd": false,
+        "auto_alarm_cmd": true
       },
-      "changed": [
-        "cooler_auto_cmd"
-      ]
+      "changed": []
     },
     {
       "step": 7,
       "line": 6,
-      "code": "ELSIF (temperature > 26.0) THEN",
-      "description": "ELSIF condition: (temperature > 26.0) = False",
+      "code": "IF NOT manual_mode THEN",
+      "description": "IF条件: NOT manual_mode = True",
       "variables": {
-        "temperature": 15.0,
+        "temperature": 115.0,
         "manual_mode": false,
         "heater": false,
         "cooler": false,
         "alarm": false,
-        "heater_auto_cmd": true,
-        "cooler_auto_cmd": false
+        "auto_heater_cmd": false,
+        "auto_cooler_cmd": false,
+        "auto_alarm_cmd": true
       },
       "changed": []
     },
     {
       "step": 8,
       "line": 7,
-      "code": "heater_auto_cmd := FALSE;",
-      "description": "Assignment: heater_auto_cmd = False (previous: True)",
+      "code": "IF temperature < 18.0 THEN",
+      "description": "IF条件: temperature < 18.0 = False",
       "variables": {
-        "temperature": 15.0,
+        "temperature": 115.0,
         "manual_mode": false,
         "heater": false,
         "cooler": false,
         "alarm": false,
-        "heater_auto_cmd": false,
-        "cooler_auto_cmd": false
+        "auto_heater_cmd": false,
+        "auto_cooler_cmd": false,
+        "auto_alarm_cmd": true
       },
-      "changed": [
-        "heater_auto_cmd"
-      ]
+      "changed": []
     },
     {
       "step": 9,
-      "line": 8,
-      "code": "cooler_auto_cmd := TRUE;",
-      "description": "Assignment: cooler_auto_cmd = True (previous: False)",
+      "line": 10,
+      "code": "ELSIF temperature > 26.0 THEN",
+      "description": "ELSIF条件: temperature > 26.0 = True",
       "variables": {
-        "temperature": 15.0,
+        "temperature": 115.0,
         "manual_mode": false,
         "heater": false,
         "cooler": false,
         "alarm": false,
-        "heater_auto_cmd": false,
-        "cooler_auto_cmd": true
+        "auto_heater_cmd": false,
+        "auto_cooler_cmd": false,
+        "auto_alarm_cmd": true
       },
-      "changed": [
-        "cooler_auto_cmd"
-      ]
+      "changed": []
     },
     {
       "step": 10,
-      "line": 9,
-      "code": "ELSE",
-      "description": "Enter ELSE branch",
+      "line": 11,
+      "code": "auto_heater_cmd := FALSE;",
+      "description": "赋值: auto_heater_cmd = False (原值: False)",
       "variables": {
-        "temperature": 15.0,
+        "temperature": 115.0,
         "manual_mode": false,
         "heater": false,
         "cooler": false,
         "alarm": false,
-        "heater_auto_cmd": false,
-        "cooler_auto_cmd": true
+        "auto_heater_cmd": false,
+        "auto_cooler_cmd": false,
+        "auto_alarm_cmd": true
       },
       "changed": []
     },
     {
       "step": 11,
-      "line": 10,
-      "code": "heater_auto_cmd := FALSE;",
-      "description": "Assignment: heater_auto_cmd = False (previous: False)",
+      "line": 12,
+      "code": "auto_cooler_cmd := TRUE;",
+      "description": "赋值: auto_cooler_cmd = True (原值: False)",
       "variables": {
-        "temperature": 15.0,
+        "temperature": 115.0,
         "manual_mode": false,
         "heater": false,
         "cooler": false,
         "alarm": false,
-        "heater_auto_cmd": false,
-        "cooler_auto_cmd": true
+        "auto_heater_cmd": false,
+        "auto_cooler_cmd": true,
+        "auto_alarm_cmd": true
+      },
+      "changed": [
+        "auto_cooler_cmd"
+      ]
+    },
+    {
+      "step": 12,
+      "line": 13,
+      "code": "ELSE",
+      "description": "跳过ELSE分支（前面的分支已执行）",
+      "variables": {
+        "temperature": 115.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": false,
+        "alarm": false,
+        "auto_heater_cmd": false,
+        "auto_cooler_cmd": true,
+        "auto_alarm_cmd": true
       },
       "changed": []
     },
     {
-      "step": 12,
-      "line": 11,
-      "code": "cooler_auto_cmd := FALSE;",
-      "description": "Assignment: cooler_auto_cmd = False (previous: True)",
-      "variables": {
-        "temperature": 15.0,
-        "manual_mode": false,
-        "heater": false,
-        "cooler": false,
-        "alarm": false,
-        "heater_auto_cmd": false,
-        "cooler_auto_cmd": false
-      },
-      "changed": [
-        "cooler_auto_cmd"
-      ]
-    },
-    {
       "step": 13,
-      "line": 12,
+      "line": 16,
       "code": "END_IF;",
-      "description": "End IF statement",
+      "description": "结束IF语句",
       "variables": {
-        "temperature": 15.0,
+        "temperature": 115.0,
         "manual_mode": false,
         "heater": false,
         "cooler": false,
         "alarm": false,
-        "heater_auto_cmd": false,
-        "cooler_auto_cmd": false
+        "auto_heater_cmd": false,
+        "auto_cooler_cmd": true,
+        "auto_alarm_cmd": true
       },
       "changed": []
     },
     {
       "step": 14,
-      "line": 13,
-      "code": "IF (temperature < 5.0) OR (temperature > 40.0) THEN",
-      "description": "IF condition: (temperature < 5.0) OR (temperature > 40.0) = False",
+      "line": 17,
+      "code": "END_IF;",
+      "description": "结束IF语句",
       "variables": {
-        "temperature": 15.0,
+        "temperature": 115.0,
         "manual_mode": false,
         "heater": false,
         "cooler": false,
         "alarm": false,
-        "heater_auto_cmd": false,
-        "cooler_auto_cmd": false
+        "auto_heater_cmd": false,
+        "auto_cooler_cmd": true,
+        "auto_alarm_cmd": true
       },
       "changed": []
     },
     {
       "step": 15,
-      "line": 14,
-      "code": "alarm_auto_cmd := TRUE;",
-      "description": "Assignment: alarm_auto_cmd = True (previous: None)",
+      "line": 18,
+      "code": "IF manual_mode THEN",
+      "description": "IF条件: manual_mode = False",
       "variables": {
-        "temperature": 15.0,
+        "temperature": 115.0,
         "manual_mode": false,
         "heater": false,
         "cooler": false,
         "alarm": false,
-        "heater_auto_cmd": false,
-        "cooler_auto_cmd": false,
-        "alarm_auto_cmd": true
+        "auto_heater_cmd": false,
+        "auto_cooler_cmd": true,
+        "auto_alarm_cmd": true
       },
-      "changed": [
-        "alarm_auto_cmd"
-      ]
+      "changed": []
     },
     {
       "step": 16,
-      "line": 15,
+      "line": 21,
       "code": "ELSE",
-      "description": "Enter ELSE branch",
+      "description": "进入ELSE分支",
       "variables": {
-        "temperature": 15.0,
+        "temperature": 115.0,
         "manual_mode": false,
         "heater": false,
         "cooler": false,
         "alarm": false,
-        "heater_auto_cmd": false,
-        "cooler_auto_cmd": false,
-        "alarm_auto_cmd": true
+        "auto_heater_cmd": false,
+        "auto_cooler_cmd": true,
+        "auto_alarm_cmd": true
       },
       "changed": []
     },
     {
       "step": 17,
-      "line": 16,
-      "code": "alarm_auto_cmd := FALSE;",
-      "description": "Assignment: alarm_auto_cmd = False (previous: True)",
+      "line": 22,
+      "code": "heater := auto_heater_cmd;",
+      "description": "赋值: heater = False (原值: False)",
       "variables": {
-        "temperature": 15.0,
+        "temperature": 115.0,
         "manual_mode": false,
         "heater": false,
         "cooler": false,
         "alarm": false,
-        "heater_auto_cmd": false,
-        "cooler_auto_cmd": false,
-        "alarm_auto_cmd": false
-      },
-      "changed": [
-        "alarm_auto_cmd"
-      ]
-    },
-    {
-      "step": 18,
-      "line": 17,
-      "code": "END_IF;",
-      "description": "End IF statement",
-      "variables": {
-        "temperature": 15.0,
-        "manual_mode": false,
-        "heater": false,
-        "cooler": false,
-        "alarm": false,
-        "heater_auto_cmd": false,
-        "cooler_auto_cmd": false,
-        "alarm_auto_cmd": false
+        "auto_heater_cmd": false,
+        "auto_cooler_cmd": true,
+        "auto_alarm_cmd": true
       },
       "changed": []
     },
     {
-      "step": 19,
-      "line": 18,
-      "code": "(*-----------------------------",
-      "description": "Skip comment or empty line",
+      "step": 18,
+      "line": 23,
+      "code": "cooler := auto_cooler_cmd;",
+      "description": "赋值: cooler = True (原值: False)",
       "variables": {
-        "temperature": 15.0,
+        "temperature": 115.0,
         "manual_mode": false,
         "heater": false,
-        "cooler": false,
+        "cooler": true,
         "alarm": false,
-        "heater_auto_cmd": false,
-        "cooler_auto_cmd": false,
-        "alarm_auto_cmd": false
+        "auto_heater_cmd": false,
+        "auto_cooler_cmd": true,
+        "auto_alarm_cmd": true
+      },
+      "changed": [
+        "cooler"
+      ]
+    },
+    {
+      "step": 19,
+      "line": 24,
+      "code": "END_IF;",
+      "description": "结束IF语句",
+      "variables": {
+        "temperature": 115.0,
+        "manual_mode": false,
+        "heater": false,
+        "cooler": true,
+        "alarm": false,
+        "auto_heater_cmd": false,
+        "auto_cooler_cmd": true,
+        "auto_alarm_cmd": true
       },
       "changed": []
     },
     {
       "step": 20,
-      "line": 19,
-      "code": "Manual mode handling",
-      "description": "Execute: Manual mode handling",
-      "variables": {
-        "temperature": 15.0,
-        "manual_mode": false,
-        "heater": false,
-        "cooler": false,
-        "alarm": false,
-        "heater_auto_cmd": false,
-        "cooler_auto_cmd": false,
-        "alarm_auto_cmd": false
-      },
-      "changed": []
-    },
-    {
-      "step": 21,
-      "line": 20,
-      "code": "Requirement: No auto control in manual mode",
-      "description": "Execute: Requirement: No auto control in manual mode",
-      "variables": {
-        "temperature": 15.0,
-        "manual_mode": false,
-        "heater": false,
-        "cooler": false,
-        "alarm": false,
-        "heater_auto_cmd": false,
-        "cooler_auto_cmd": false,
-        "alarm_auto_cmd": false
-      },
-      "changed": []
-    },
-    {
-      "step": 22,
-      "line": 21,
-      "code": "This means: In manual mode, this function block does not auto-control outputs,",
-      "description": "Execute: In manual mode, this function block does not auto-control outputs,",
-      "variables": {
-        "temperature": 15.0,
-        "manual_mode": false,
-        "heater": false,
-        "cooler": false,
-        "alarm": false,
-        "heater_auto_cmd": false,
-        "cooler_auto_cmd": false,
-        "alarm_auto_cmd": false
-      },
-      "changed": []
-    },
-    {
-      "step": 23,
-      "line": 22,
-      "code": "Therefore all outputs are set to FALSE in manual mode, controlled by upper logic.",
-      "description": "Execute: All outputs set to FALSE in manual mode, controlled by upper logic.",
-      "variables": {
-        "temperature": 15.0,
-        "manual_mode": false,
-        "heater": false,
-        "cooler": false,
-        "alarm": false,
-        "heater_auto_cmd": false,
-        "cooler_auto_cmd": false,
-        "alarm_auto_cmd": false
-      },
-      "changed": []
-    },
-    {
-      "step": 24,
-      "line": 23,
-      "code": "------------------------------*)",
-      "description": "Execute: ------------------------------*)",
-      "variables": {
-        "temperature": 15.0,
-        "manual_mode": false,
-        "heater": false,
-        "cooler": false,
-        "alarm": false,
-        "heater_auto_cmd": false,
-        "cooler_auto_cmd": false,
-        "alarm_auto_cmd": false
-      },
-      "changed": []
-    },
-    {
-      "step": 25,
-      "line": 24,
-      "code": "IF manual_mode THEN",
-      "description": "IF condition: manual_mode = False",
-      "variables": {
-        "temperature": 15.0,
-        "manual_mode": false,
-        "heater": false,
-        "cooler": false,
-        "alarm": false,
-        "heater_auto_cmd": false,
-        "cooler_auto_cmd": false,
-        "alarm_auto_cmd": false
-      },
-      "changed": []
-    },
-    {
-      "step": 26,
       "line": 25,
-      "code": "heater := FALSE;",
-      "description": "Assignment: heater = False (previous: False)",
+      "code": "alarm := auto_alarm_cmd;",
+      "description": "赋值: alarm = True (原值: False)",
       "variables": {
-        "temperature": 15.0,
+        "temperature": 115.0,
         "manual_mode": false,
         "heater": false,
-        "cooler": false,
-        "alarm": false,
-        "heater_auto_cmd": false,
-        "cooler_auto_cmd": false,
-        "alarm_auto_cmd": false
+        "cooler": true,
+        "alarm": true,
+        "auto_heater_cmd": false,
+        "auto_cooler_cmd": true,
+        "auto_alarm_cmd": true
       },
-      "changed": []
-    },
-    {
-      "step": 27,
-      "line": 26,
-      "code": "cooler := FALSE;",
-      "description": "Assignment: cooler = False (previous: False)",
-      "variables": {
-        "temperature": 15.0,
-        "manual_mode": false,
-        "heater": false,
-        "cooler": false,
-        "alarm": false,
-        "heater_auto_cmd": false,
-        "cooler_auto_cmd": false,
-        "alarm_auto_cmd": false
-      },
-      "changed": []
-    },
-    {
-      "step": 28,
-      "line": 27,
-      "code": "alarm  := FALSE;",
-      "description": "Assignment: alarm = False (previous: False)",
-      "variables": {
-        "temperature": 15.0,
-        "manual_mode": false,
-        "heater": false,
-        "cooler": false,
-        "alarm": false,
-        "heater_auto_cmd": false,
-        "cooler_auto_cmd": false,
-        "alarm_auto_cmd": false
-      },
-      "changed": []
-    },
-    {
-      "step": 29,
-      "line": 28,
-      "code": "ELSE",
-      "description": "Enter ELSE branch",
-      "variables": {
-        "temperature": 15.0,
-        "manual_mode": false,
-        "heater": false,
-        "cooler": false,
-        "alarm": false,
-        "heater_auto_cmd": false,
-        "cooler_auto_cmd": false,
-        "alarm_auto_cmd": false
-      },
-      "changed": []
-    },
-    {
-      "step": 30,
-      "line": 29,
-      "code": "heater := heater_auto_cmd;",
-      "description": "Assignment: heater = False (previous: False)",
-      "variables": {
-        "temperature": 15.0,
-        "manual_mode": false,
-        "heater": false,
-        "cooler": false,
-        "alarm": false,
-        "heater_auto_cmd": false,
-        "cooler_auto_cmd": false,
-        "alarm_auto_cmd": false
-      },
-      "changed": []
-    },
-    {
-      "step": 31,
-      "line": 30,
-      "code": "cooler := cooler_auto_cmd;",
-      "description": "Assignment: cooler = False (previous: False)",
-      "variables": {
-        "temperature": 15.0,
-        "manual_mode": false,
-        "heater": false,
-        "cooler": false,
-        "alarm": false,
-        "heater_auto_cmd": false,
-        "cooler_auto_cmd": false,
-        "alarm_auto_cmd": false
-      },
-      "changed": []
-    },
-    {
-      "step": 32,
-      "line": 31,
-      "code": "alarm  := alarm_auto_cmd;",
-      "description": "Assignment: alarm = False (previous: False)",
-      "variables": {
-        "temperature": 15.0,
-        "manual_mode": false,
-        "heater": false,
-        "cooler": false,
-        "alarm": false,
-        "heater_auto_cmd": false,
-        "cooler_auto_cmd": false,
-        "alarm_auto_cmd": false
-      },
-      "changed": []
-    },
-    {
-      "step": 33,
-      "line": 32,
-      "code": "END_IF;",
-      "description": "End IF statement",
-      "variables": {
-        "temperature": 15.0,
-        "manual_mode": false,
-        "heater": false,
-        "cooler": false,
-        "alarm": false,
-        "heater_auto_cmd": false,
-        "cooler_auto_cmd": false,
-        "alarm_auto_cmd": false
-      },
-      "changed": []
+      "changed": [
+        "alarm"
+      ]
     }
   ],
   "input_values": {
-    "temperature": 15.0,
+    "temperature": 115.0,
     "manual_mode": false
   },
-  "raw_code": "FUNCTION_BLOCK TemperatureControlSystem\nVAR_INPUT\n    temperature : REAL;    (* Current temperature in Celsius *)\n    manual_mode : BOOL;    (* Manual mode: TRUE=manual, FALSE=auto *)\nEND_VAR\n\nVAR_OUTPUT\n    heater : BOOL;         (* Heater output *)\n    cooler : BOOL;         (* Cooler output *)\n    alarm  : BOOL;         (* Alarm output *)\nEND_VAR\n\nVAR\n    heater_auto_cmd : BOOL := FALSE;   (* Heater command in auto mode *)\n    cooler_auto_cmd : BOOL := FALSE;   (* Cooler command in auto mode *)\n    alarm_auto_cmd  : BOOL := FALSE;   (* Alarm command in auto mode *)\nEND_VAR\n\n(*-----------------------------\n  Auto control logic (only effective in auto mode)\n------------------------------*)\n(* Temperature zone control for heating/cooling *)\nIF (temperature < 18.0) THEN\n    heater_auto_cmd := TRUE;\n    cooler_auto_cmd := FALSE;\nELSIF (temperature > 26.0) THEN\n    heater_auto_cmd := FALSE;\n    cooler_auto_cmd := TRUE;\nELSE\n    (* 18C <= temperature <= 26C: both off *)\n    heater_auto_cmd := FALSE;\n    cooler_auto_cmd := FALSE;\nEND_IF;\n\n(* Alarm logic: temperature < 5C or temperature > 40C *)\nIF (temperature < 5.0) OR (temperature > 40.0) THEN\n    alarm_auto_cmd := TRUE;\nELSE\n    alarm_auto_cmd := FALSE;\nEND_IF;\n\n(*-----------------------------\n  Manual mode handling\n  Requirement: No auto control in manual mode\n  This means: In manual mode, this function block does not auto-control outputs,\n  Therefore all outputs are set to FALSE in manual mode, controlled by upper logic.\n------------------------------*)\nIF manual_mode THEN\n    (* Manual mode: This function block does not output auto control signals *)\n    heater := FALSE;\n    cooler := FALSE;\n    alarm  := FALSE;\nELSE\n    (* Auto mode: Output auto control results *)\n    heater := heater_auto_cmd;\n    cooler := cooler_auto_cmd;\n    alarm  := alarm_auto_cmd;\nEND_IF;\n\nEND_FUNCTION_BLOCK"
+  "raw_code": "FUNCTION_BLOCK TemperatureControlSystem\nVAR_INPUT\n    temperature : REAL;    (* Current temperature in Celsius *)\n    manual_mode : BOOL;    (* TRUE = Manual mode, disables automatic control *)\nEND_VAR\n\nVAR_OUTPUT\n    heater : BOOL;         (* Heater control output *)\n    cooler : BOOL;         (* Cooler control output *)\n    alarm  : BOOL;         (* Alarm output *)\nEND_VAR\n\nVAR\n    auto_heater_cmd : BOOL := FALSE;  (* Internal automatic heater command *)\n    auto_cooler_cmd : BOOL := FALSE;  (* Internal automatic cooler command *)\n    auto_alarm_cmd  : BOOL := FALSE;  (* Internal automatic alarm command *)\nEND_VAR\n\n(* ------------------------------------------------------------- *)\n(* Automatic temperature control logic (only valid in auto mode) *)\n(* ------------------------------------------------------------- *)\n\n(* Default automatic commands *)\nauto_heater_cmd := FALSE;\nauto_cooler_cmd := FALSE;\nauto_alarm_cmd  := FALSE;\n\n(* Alarm logic: active if temperature is outside safe range *)\nIF (temperature < 5.0) OR (temperature > 40.0) THEN\n    auto_alarm_cmd := TRUE;\nEND_IF;\n\n(* Temperature band control (only if not in manual mode) *)\nIF NOT manual_mode THEN\n    (* Heating / cooling based on comfort band 18°C .. 26°C *)\n    IF temperature < 18.0 THEN\n        auto_heater_cmd := TRUE;\n        auto_cooler_cmd := FALSE;\n    ELSIF temperature > 26.0 THEN\n        auto_heater_cmd := FALSE;\n        auto_cooler_cmd := TRUE;\n    ELSE\n        (* 18°C ≤ temperature ≤ 26°C: both off *)\n        auto_heater_cmd := FALSE;\n        auto_cooler_cmd := FALSE;\n    END_IF;\nEND_IF;\n\n(* ------------------------------------------------------------- *)\n(* Output assignment                                              *)\n(* In manual mode: no automatic heater/cooler control (forced off) *)\n(* Alarm remains automatic as a safety function                   *)\n(* ------------------------------------------------------------- *)\n\nIF manual_mode THEN\n    heater := FALSE;\n    cooler := FALSE;\nELSE\n    heater := auto_heater_cmd;\n    cooler := auto_cooler_cmd;\nEND_IF;\n\nalarm := auto_alarm_cmd;\n\nEND_FUNCTION_BLOCK"
 };
 
         let currentStepIndex = 0;

@@ -25,5 +25,14 @@ plcverif_passed_threshold = 0.80
 # Default compiler for evaluation
 evaluate_compiler = "rusty"
 
+# RuSTy compiler mode: "local", "docker", or "auto"
+# - "local": Use locally installed plc command
+# - "docker": Use Docker image ghcr.io/plc-lang/rusty-docker
+# - "auto": Try local first, fallback to Docker if local not available
+rusty_mode = "docker"
+
+# Docker image for RuSTy compiler
+rusty_docker_image = "ghcr.io/plc-lang/rusty-docker:docker-x86_64"
+# docker pull ghcr.io/plc-lang/rusty-docker:docker-x86_64
 # Context window size
 max_tokens = 4500

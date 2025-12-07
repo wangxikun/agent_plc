@@ -8,4 +8,5 @@ dependencies = [
     "langchain-chroma>=1.0.0",
     "langchain-openai>=1.0.1",
     "requests>=2.32.5",
+    "gradio>=4.0.0",
 ]

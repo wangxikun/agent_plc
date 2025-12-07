@@ -70,7 +70,7 @@ print()
 
 generator = SimplePLCGenerator(
     compiler="rusty",
-    enable_verification=False,  # 先关闭验证，快速生成
+    enable_verification=True,  # 启用编译验证
     enable_auto_fix=False
 )
 

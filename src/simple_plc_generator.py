@@ -19,6 +19,7 @@ from datetime import datetime
 from src.code_generator import CodeGenerator
 from src.verifier import Verifier, VerifyResult
 from src.auto_fixer import AutoFixer, IterativeFixer
+from src.st_animator import STAnimator
 
 
 @dataclass
@@ -32,6 +33,7 @@ class GenerationResult:
     iterations: int = 1
     error_message: str = ""
     st_file_path: str = ""
+    animation_html_path: str = ""
 
     def __str__(self):
         output = []
@@ -138,6 +140,9 @@ class SimplePLCGenerator:
             max_iterations=self.max_fix_iterations
         )
 
+        # 初始化动画生成器
+        self.animator = STAnimator()
+
         print(f"SimplePLCGenerator initialized:")
         print(f"  - LLM Model: {self.llm_config.get('model', 'default')}")
         print(f"  - Compiler: {self.compiler}")
@@ -237,7 +242,7 @@ class SimplePLCGenerator:
                     verify_func=self.verifier.verify,
                     original_instruction=enhanced_instruction,
                     properties=properties,
-                    save_to_file=False
+                    save_to_file=True
                 )
 
                 result = GenerationResult(
@@ -249,7 +254,7 @@ class SimplePLCGenerator:
                 )
             else:
                 # 仅验证，不修复
-                verify_result = self.verifier.verify(st_code, properties=properties, save_to_file=False)
+                verify_result = self.verifier.verify(st_code, properties=properties, save_to_file=True)
 
                 result = GenerationResult(
                     success=verify_result.overall_success,
@@ -334,6 +339,107 @@ class SimplePLCGenerator:
             iterations=iterations,
             error_message="" if success else "Failed to fix code"
         )
+
+    def generate_animation(self,
+                          st_code: str,
+                          input_values: Dict[str, any] = None,
+                          output_html_path: str = None,
+                          max_cycles: int = 1,
+                          auto_open: bool = True) -> str:
+        """
+        生成ST代码执行动画
+
+        Args:
+            st_code: ST代码
+            input_values: 输入变量的值字典，例如 {'start_button': True, 'temperature': 25.0}
+            output_html_path: 输出HTML文件路径（可选）
+            max_cycles: 最大扫描周期数
+            auto_open: 是否自动在浏览器中打开
+
+        Returns:
+            生成的HTML文件路径
+
+        Example:
+            >>> generator = SimplePLCGenerator()
+            >>> html_path = generator.generate_animation(
+            ...     st_code=my_st_code,
+            ...     input_values={'start_button': True, 'temperature': 25.0},
+            ...     auto_open=True
+            ... )
+        """
+        print("\n" + "=" * 80)
+        print("Generating ST Code Animation")
+        print("=" * 80)
+
+        try:
+            html_path = self.animator.generate_animation(
+                st_code=st_code,
+                input_values=input_values,
+                output_html_path=output_html_path,
+                max_cycles=max_cycles,
+                auto_open=auto_open
+            )
+
+            print(f"✓ Animation generated: {html_path}")
+            return html_path
+
+        except Exception as e:
+            print(f"✗ Failed to generate animation: {str(e)}")
+            raise
+
+    def generate_with_animation(self,
+                               instruction: str,
+                               input_values: Dict[str, any] = None,
+                               properties: Optional[List[Dict]] = None,
+                               save_to_file: bool = True,
+                               output_path: str = None,
+                               auto_open_animation: bool = True) -> GenerationResult:
+        """
+        生成PLC代码并同时生成动画演示
+
+        Args:
+            instruction: 自然语言指令
+            input_values: 动画演示的输入变量值
+            properties: 需要验证的属性列表（可选）
+            save_to_file: 是否保存到文件
+            output_path: 输出文件路径（可选）
+            auto_open_animation: 是否自动在浏览器中打开动画
+
+        Returns:
+            GenerationResult: 生成结果（包含animation_html_path）
+
+        Example:
+            >>> generator = SimplePLCGenerator()
+            >>> result = generator.generate_with_animation(
+            ...     instruction="Create a motor control system",
+            ...     input_values={'start_button': True, 'temperature': 25.0}
+            ... )
+            >>> print(f"Code: {result.st_file_path}")
+            >>> print(f"Animation: {result.animation_html_path}")
+        """
+        # 首先生成代码
+        result = self.generate(
+            instruction=instruction,
+            properties=properties,
+            save_to_file=save_to_file,
+            output_path=output_path
+        )
+
+        # 如果代码生成成功，生成动画
+        if result.success and result.st_code:
+            try:
+                print("\n[Bonus] Generating animation...")
+                animation_path = self.generate_animation(
+                    st_code=result.st_code,
+                    input_values=input_values,
+                    auto_open=auto_open_animation
+                )
+                result.animation_html_path = animation_path
+                print(f"✓ Animation ready: {animation_path}")
+            except Exception as e:
+                print(f"⚠ Animation generation failed (code generation succeeded): {str(e)}")
+
+        return result
 
 
 def demo():

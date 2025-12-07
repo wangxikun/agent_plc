@@ -99,9 +99,9 @@ def create_agent(tools=[],
                                         api_key=deepseek_api_key,
                                         base_url=deepseek_base_url)
         else:       # potential other open apis & local open-source llm in openai-key-format
-            base_agent_model = ChatOpenAI(model=chat_model, 
-                                        api_key=api_key,
-                                        base_url=base_url)     
+            base_agent_model = ChatOpenAI(model=chat_model,
+                                        api_key=openai_api_key,
+                                        base_url=openai_base_url)     
     else:
         base_agent_model = llm  
     

@@ -40,6 +40,10 @@ class STSimulator:
         self.steps: List[ExecutionStep] = []
         self.current_step = 0
 
+        # 嵌套IF分支控制状态 - 使用栈结构支持嵌套
+        self.if_stack: List[Dict[str, bool]] = []  # 每层IF的状态栈
+        # 每个栈元素包含: {'branch_taken': bool, 'skip_until_next': bool}
+
     def initialize_variables(self, input_values: Dict[str, Any] = None):
         """初始化变量"""
         self.variables = {}
@@ -99,8 +103,17 @@ class STSimulator:
         """执行一个扫描周期"""
         code_lines = self.program.code_lines
 
+        # 重置分支控制状态 - 清空栈
+        self.if_stack = []
+
         for i, line_info in enumerate(code_lines):
             code = line_info['code']
+            code_upper = code.strip().upper()
+
+            # 检查是否应该跳过这一行
+            if self._should_skip_line(code_upper):
+                continue
+
             self.current_step += 1
 
             # 执行前的变量状态
@@ -126,6 +139,32 @@ class STSimulator:
             )
             self.steps.append(step)
 
+    def _should_skip_line(self, code_upper: str) -> bool:
+        """
+        判断是否应该跳过当前行
+        实现嵌套IF-ELSIF-ELSE的分支控制逻辑
+        """
+        # 遇到END_IF，弹出当前IF层的状态
+        if code_upper.startswith('END_IF'):
+            if self.if_stack:
+                self.if_stack.pop()
+            return False  # END_IF本身不跳过
+
+        # 遇到ELSIF或ELSE，不跳过（让_execute_line处理）
+        if code_upper.startswith('ELSIF') or code_upper.startswith('ELSE'):
+            # 重置当前层的skip标志
+            if self.if_stack:
+                self.if_stack[-1]['skip_until_next'] = False
+            return False
+
+        # 检查是否需要跳过当前行
+        # 只要有任何一层IF需要跳过，就跳过这一行
+        for if_state in self.if_stack:
+            if if_state['skip_until_next']:
+                return True
+
+        return False
+
     def _execute_line(self, code: str) -> str:
         """执行单行代码"""
         code = code.strip()
@@ -148,7 +187,21 @@ class STSimulator:
 
         # 处理ELSE
         if code.upper().startswith('ELSE'):
-            return "进入ELSE分支"
+            if not self.if_stack:
+                return "ELSE语句错误：没有对应的IF"
+
+            # 获取当前IF层的状态
+            current_if = self.if_stack[-1]
+
+            if current_if['branch_taken']:
+                # 前面的分支已经执行，跳过ELSE块
+                current_if['skip_until_next'] = True
+                return "跳过ELSE分支（前面的分支已执行）"
+            else:
+                # 执行ELSE分支
+                current_if['branch_taken'] = True
+                current_if['skip_until_next'] = False
+                return "进入ELSE分支"
 
         # 处理END_IF
         if code.upper().startswith('END_IF'):
@@ -187,12 +240,31 @@ class STSimulator:
 
         try:
             result = self._evaluate_expression(condition)
+
+            # 压入新的IF状态到栈
+            if_state = {
+                'branch_taken': result,  # IF条件是否成立
+                'skip_until_next': not result  # 如果条件不成立，跳过IF块
+            }
+            self.if_stack.append(if_state)
+
             return f"IF条件: {condition} = {result}"
         except Exception as e:
             return f"IF条件评估失败: {e}"
 
     def _execute_elsif(self, code: str) -> str:
         """执行ELSIF语句"""
+        if not self.if_stack:
+            return "ELSIF语句错误：没有对应的IF"
+
+        # 获取当前IF层的状态
+        current_if = self.if_stack[-1]
+
+        # 如果已经执行了某个分支，跳过所有后续分支
+        if current_if['branch_taken']:
+            current_if['skip_until_next'] = True
+            return "跳过ELSIF分支（前面的分支已执行）"
+
         match = re.match(r'ELSIF\s+(.+?)\s+THEN', code, re.IGNORECASE)
         if not match:
             return f"无法解析ELSIF语句: {code}"
@@ -201,6 +273,15 @@ class STSimulator:
 
         try:
             result = self._evaluate_expression(condition)
+
+            if result:
+                # ELSIF条件成立，执行ELSIF块内的代码
+                current_if['branch_taken'] = True
+                current_if['skip_until_next'] = False
+            else:
+                # ELSIF条件不成立，跳过ELSIF块内的代码
+                current_if['skip_until_next'] = True
+
             return f"ELSIF条件: {condition} = {result}"
         except Exception as e:
             return f"ELSIF条件评估失败: {e}"
